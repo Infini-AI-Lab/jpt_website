@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jackpot — Optimal Budgeted Rejection Sampling for Extreme Actor-Policy Mismatch RL</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --ink: #111216;
+      --muted: #5a5f6a;
+      --accent: #d24b8f;
+      --accent-2: #146c5a;
+      --card: #ffffff;
+      --line: rgba(17, 18, 22, 0.08);
+      --shadow: 0 20px 60px rgba(20, 24, 32, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 800px at 5% -10%, rgba(210, 75, 143, 0.12), transparent 60%),
+                  radial-gradient(900px 600px at 100% 0%, rgba(20, 108, 90, 0.12), transparent 55%),
+                  var(--bg);
+      color: var(--ink);
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    .hero {
+      position: relative;
+      padding: 48px;
+      border-radius: 28px;
+      background: linear-gradient(130deg, #1a1b24, #2b2430 55%, #1a2c2a);
+      color: #f6f3f0;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: -30% -10% auto auto;
+      height: 260px;
+      width: 260px;
+      background: radial-gradient(circle, rgba(210, 75, 143, 0.6), transparent 65%);
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .hero-top {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hero-mark {
+      display: grid;
+      gap: 12px;
+      place-items: center;
+    }
+
+    .hero-mark img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+    }
+
+    .title {
+      margin: 0 0 12px;
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      font-size: clamp(2rem, 3vw, 3.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 1.05rem;
+      color: rgba(246, 243, 240, 0.78);
+      max-width: 620px;
+    }
+
+    .meta {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 28px;
+      color: rgba(246, 243, 240, 0.7);
+      font-size: 0.95rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+    }
+
+    section {
+      margin-top: 56px;
+    }
+
+    h2 {
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      font-size: 1.6rem;
+      margin: 0 0 16px;
+    }
+
+    .lead {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 860px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 30px rgba(17, 18, 22, 0.06);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      font-size: 1.1rem;
+    }
+
+    .bullets {
+      display: grid;
+      gap: 14px;
+    }
+
+    .bullet {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bullet img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .fig-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    figure {
+      margin: 0;
+      background: #fdfcfb;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+    }
+
+    figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    figcaption {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .icon-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .icon-row img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      padding: 8px;
+    }
+
+    footer {
+      margin-top: 64px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    @media (max-width: 700px) {
+      .hero { padding: 32px 24px; }
+      .hero-mark img { width: 90px; height: 90px; }
+      .meta { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-top">
+        <div class="hero-mark">
+          <img src="assets/figures/fig-000.png" alt="Jackpot visual mark" />
+          <img src="assets/figures/fig-001.png" alt="Jackpot visual mark, monochrome" />
+        </div>
+        <div>
+          <h1 class="title">Jackpot</h1>
+          <p class="subtitle">
+            Optimal Budgeted Rejection Sampling (OBRS) for extreme actor-policy mismatch in RL for LLMs.
+            A practical path to decouple rollout generation from policy optimization without destabilizing learning.
+          </p>
+          <div class="meta">
+            <span class="pill">Zhuoming Chen* · Hongyi Liu* · Yang Zhou* · Haizhong Zheng · Beidi Chen</span>
+            <span class="pill">Carnegie Mellon University</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <h2>Abstract (Condensed)</h2>
+      <p class="lead">
+        Rollouts dominate the cost of RL for LLMs, yet using a cheaper rollout model creates severe
+        distribution mismatch with the target policy. Jackpot introduces OBRS to move rollout
+        distributions toward the target under a controllable acceptance budget. The framework
+        combines OBRS, a unified training objective that updates both policy and rollout models,
+        and a system implementation that uses top-k probability estimation and batch-level bias
+        correction. Empirically, Jackpot stabilizes training compared to importance-sampling
+        baselines and reaches on-policy performance when training Qwen3-8B-Base for up to
+        300 update steps.
+      </p>
+    </section>
+
+    <section>
+      <h2>Why This Matters</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Problem</h3>
+          <div class="bullets">
+            <div class="bullet">
+              <img src="assets/figures/fig-008.png" alt="X icon" />
+              <div>On-policy RL is expensive because rollouts dominate total cost.</div>
+            </div>
+            <div class="bullet">
+              <img src="assets/figures/fig-008.png" alt="X icon" />
+              <div>Off-policy rollouts introduce large mismatch and unstable training.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Jackpot Solution</h3>
+          <div class="bullets">
+            <div class="bullet">
+              <img src="assets/figures/fig-006.png" alt="Check icon" />
+              <div>Use OBRS to align rollout and target distributions within a budget.</div>
+            </div>
+            <div class="bullet">
+              <img src="assets/figures/fig-006.png" alt="Check icon" />
+              <div>Unified objective keeps policy + rollout models co-evolving.</div>
+            </div>
+            <div class="bullet">
+              <img src="assets/figures/fig-006.png" alt="Check icon" />
+              <div>System optimizations make alignment practical at scale.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Method Snapshot</h2>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>Optimal Budgeted Rejection Sampling</h3>
+          <p class="lead">
+            OBRS directly reduces distribution mismatch by sampling from rollout outputs while
+            enforcing an acceptance budget, ensuring controlled, monotonic alignment.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Unified Training Objective</h3>
+          <p class="lead">
+            Policy and rollout models are updated together, mitigating drift and keeping the
+            rollout distribution close to the evolving policy.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Efficient Implementation</h3>
+          <p class="lead">
+            Top-k probability estimation plus batch-level bias correction delivers practical
+            throughput without sacrificing alignment quality.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Figures From the Draft</h2>
+      <div class="fig-grid">
+        <figure>
+          <img src="assets/figures/fig-002.png" alt="AIME 2025 avg@16 Qwen3-1.7B-Base Rollout Qwen3-8B-Base Update" loading="lazy" decoding="async" />
+          <figcaption>AIME 2025 avg@16: Qwen3-1.7B rollout, Qwen3-8B update.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-003.png" alt="Acceptance rate vs. KL divergence" loading="lazy" decoding="async" />
+          <figcaption>Acceptance rate vs. KL divergence in numerical simulation.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-004.png" alt="Jackpot applied before and after" loading="lazy" decoding="async" />
+          <figcaption>Jackpot applied before and after: KL divergence reduction.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-005.png" alt="Actor-Policy KL divergence" loading="lazy" decoding="async" />
+          <figcaption>Actor-policy KL divergence over training steps.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-012.png" alt="AIMOAMC avg@4 Qwen2.5 rollout vs Qwen2.5-3B evaluation" loading="lazy" decoding="async" />
+          <figcaption>AIMO-AMC avg@4: Qwen2.5-1.5B rollout vs Qwen2.5-3B evaluation.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-013.png" alt="AIME 2025 avg@16 Qwen3-1.7B rollout Qwen3-4B update" loading="lazy" decoding="async" />
+          <figcaption>AIME 2025 avg@16: Qwen3-1.7B rollout, Qwen3-4B update.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-014.png" alt="AIME 2025 avg@16 Qwen3-1.7B rollout Qwen3-8B update" loading="lazy" decoding="async" />
+          <figcaption>AIME 2025 avg@16: Qwen3-1.7B rollout, Qwen3-8B update.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-015.png" alt="AIME 2025 avg@16 Qwen3-4B FP8 KV quantization" loading="lazy" decoding="async" />
+          <figcaption>AIME 2025 avg@16: Qwen3-4B FP8 KV quantization.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-016.png" alt="Training rewards on Qwen3-8B-Base DeepScaleR dataset" loading="lazy" decoding="async" />
+          <figcaption>Training rewards on Qwen3-8B-Base DeepScaleR dataset.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/fig-017.png" alt="AIMO-AMC avg@4 Qwen3-1.7B rollout + Qwen3-4B update (32-on)" loading="lazy" decoding="async" />
+          <figcaption>AIMO-AMC avg@4: Qwen3-1.7B rollout + Qwen3-4B update (32-on).</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Visual Elements</h2>
+      <p class="lead">Icons extracted from the draft figures for quick iteration.</p>
+      <div class="icon-row">
+        <img src="assets/figures/fig-006.png" alt="Check icon" loading="lazy" decoding="async" />
+        <img src="assets/figures/fig-007.png" alt="Circle icon" loading="lazy" decoding="async" />
+        <img src="assets/figures/fig-008.png" alt="X icon" loading="lazy" decoding="async" />
+        <img src="assets/figures/fig-009.png" alt="Circle icon" loading="lazy" decoding="async" />
+        <img src="assets/figures/fig-010.png" alt="Check icon" loading="lazy" decoding="async" />
+        <img src="assets/figures/fig-011.png" alt="Circle icon" loading="lazy" decoding="async" />
+      </div>
+    </section>
+
+    <section>
+      <h2>Takeaways</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Practical Decoupling</h3>
+          <p class="lead">
+            OBRS-based alignment makes it feasible to use efficient rollout models while preserving
+            stable learning dynamics.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Comparable Performance</h3>
+          <p class="lead">
+            Jackpot reaches on-policy performance in the reported Qwen3-8B-Base training regime
+            and improves stability versus importance-sampling baselines.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Draft website version 1.0 — content summarized from the attached PDF draft.
+    </footer>
+  </div>
+</body>
+</html>
