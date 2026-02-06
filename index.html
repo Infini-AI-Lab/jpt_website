@@ -3,45 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jackpot — Optimal Budgeted Rejection Sampling for Extreme Actor-Policy Mismatch RL</title>
+  <title>Jackpot: Optimal Budgeted Rejection Sampling for Extreme Actor-Policy Mismatch Reinforcement Learning</title> 
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect x='6.8' y='6.8' width='27' height='34' rx='4.2' transform='rotate(-12 20.3 23.8)' fill='rgb(244,196,121)' fill-opacity='0.65' stroke='rgb(255,255,255)' stroke-opacity='0.72'/><rect x='13.5' y='8.8' width='27' height='34' rx='4.2' transform='rotate(8 27 25.8)' fill='rgb(255,255,255)' fill-opacity='0.92' stroke='rgb(255,255,255)' stroke-opacity='0.96'/><text x='19.8' y='16.7' font-size='5.2' font-weight='700' font-family='Georgia, Times New Roman, serif' fill='rgb(10,10,10)'>A</text><path d='M27.8 20.1c1.4-2.2 4-2.3 4.9-.6.6 1.2.2 2.5-1.4 3.8-1.3 1-2.7 2.2-3.5 3.4-.8-1.2-2.1-2.4-3.4-3.4-1.7-1.3-2.1-2.6-1.4-3.8.9-1.7 3.4-1.6 4.8.6z' fill='rgb(10,10,10)'/><path d='M27.8 26.7l1.8 4.5h-3.6z' fill='rgb(10,10,10)'/></svg>">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
-      --bg: #f7f4ef;
-      --ink: #111216;
-      --muted: #5a5f6a;
-      --accent: #d24b8f;
-      --accent-2: #146c5a;
+      --bg: #f4f1ea;
+      --ink: #11131a;
+      --muted: #525867;
+      --line: rgba(17, 19, 26, 0.12);
       --card: #ffffff;
-      --line: rgba(17, 18, 22, 0.08);
-      --shadow: 0 20px 60px rgba(20, 24, 32, 0.08);
+      --accent: #d14572;
+      --accent-2: #0f6f5c;
+      --hero: linear-gradient(140deg, #161824, #2a2132 52%, #17302a);
+      --shadow: 0 16px 36px rgba(18, 20, 31, 0.1);
     }
 
     * { box-sizing: border-box; }
 
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
-      background: radial-gradient(1200px 800px at 5% -10%, rgba(210, 75, 143, 0.12), transparent 60%),
-                  radial-gradient(900px 600px at 100% 0%, rgba(20, 108, 90, 0.12), transparent 55%),
-                  var(--bg);
       color: var(--ink);
+      background:
+        radial-gradient(900px 520px at 0% -10%, rgba(209, 69, 114, 0.18), transparent 55%),
+        radial-gradient(760px 500px at 100% 0%, rgba(15, 111, 92, 0.16), transparent 56%),
+        var(--bg);
       font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
-      line-height: 1.6;
+      line-height: 1.62;
     }
 
-    a { color: inherit; text-decoration: none; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-    .page {
+    .wrap {
       max-width: 1120px;
       margin: 0 auto;
-      padding: 32px 24px 80px;
+      padding: 28px 20px 72px;
     }
 
     .hero {
       position: relative;
-      padding: 48px;
-      border-radius: 28px;
-      background: linear-gradient(130deg, #1a1b24, #2b2430 55%, #1a2c2a);
-      color: #f6f3f0;
+      border-radius: 24px;
+      padding: 36px;
+      color: #f7f4f0;
+      background: var(--hero);
       box-shadow: var(--shadow);
       overflow: hidden;
     }
@@ -49,367 +59,821 @@
     .hero::after {
       content: "";
       position: absolute;
-      inset: -30% -10% auto auto;
-      height: 260px;
       width: 260px;
-      background: radial-gradient(circle, rgba(210, 75, 143, 0.6), transparent 65%);
-      opacity: 0.65;
+      height: 260px;
+      top: -90px;
+      right: -50px;
+      background: radial-gradient(circle, rgba(209, 69, 114, 0.62), transparent 65%);
       pointer-events: none;
+      opacity: 0.75;
     }
 
-    .hero-top {
-      display: flex;
-      gap: 32px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .hero-mark {
+    .hero-grid {
       display: grid;
-      gap: 12px;
-      place-items: center;
+      grid-template-columns: 1fr;
+      gap: 22px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
     }
 
-    .hero-mark img {
+    .logo {
       width: 120px;
       height: 120px;
-      object-fit: contain;
       border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(255, 255, 255, 0.08);
       padding: 10px;
+      object-fit: contain;
     }
 
-    .title {
-      margin: 0 0 12px;
+    h1 {
+      margin: 0 0 8px;
       font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
-      font-size: clamp(2rem, 3vw, 3.2rem);
+      font-size: clamp(1.75rem, 2.9vw, 2.8rem);
       letter-spacing: -0.02em;
+      line-height: 1.18;
     }
 
-    .subtitle {
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .title-icon {
+      width: 1.15em;
+      height: 1.15em;
+      margin-top: 0.16em;
+      flex: 0 0 auto;
+    }
+
+    .title-icon .card-back {
+      fill: rgba(244, 196, 121, 0.65);
+      stroke: rgba(255, 255, 255, 0.72);
+    }
+
+    .title-icon .card-front {
+      fill: rgba(255, 255, 255, 0.92);
+      stroke: rgba(255, 255, 255, 0.96);
+    }
+
+    .title-icon .ace-mark,
+    .title-icon .ace-index {
+      fill: rgba(10, 10, 10, 0.96);
+    }
+
+    .authors,
+    .inst,
+    .hero-note {
       margin: 0;
-      font-size: 1.05rem;
-      color: rgba(246, 243, 240, 0.78);
-      max-width: 620px;
+      color: rgba(247, 244, 240, 0.84);
     }
 
-    .meta {
-      margin-top: 20px;
+    .authors {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px 28px;
-      color: rgba(246, 243, 240, 0.7);
-      font-size: 0.95rem;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
     }
 
-    .pill {
+    .author-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(247, 244, 240, 0.94);
+    }
+
+    .author-btn:hover { background: rgba(255, 255, 255, 0.16); }
+
+    .inst { margin-top: 2px; }
+
+    .hero-note {
+      margin-top: 12px;
+      max-width: 840px;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 36px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.1);
       padding: 8px 14px;
       border-radius: 999px;
       font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
-      font-size: 0.85rem;
-      letter-spacing: 0.02em;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .btn:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .external-link.button.is-dark {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      font-size: 0.9rem;
+      background: #161824;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #f7f4f0;
+      text-decoration: none;
+    }
+
+    .external-link.button.is-dark:hover {
+      background: #1e2333;
+    }
+
+    nav {
+      margin: 0 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      position: sticky;
+      top: 12px;
+      z-index: 10;
+      background: rgba(252, 251, 248, 0.92);
+      padding: 8px 10px;
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.86rem;
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--muted);
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
     }
 
     section {
-      margin-top: 56px;
+      margin-top: 42px;
+      padding: 20px 22px;
+      border-radius: 14px;
+      background: #fcfbf8;
+      border: 1px solid rgba(43, 29, 17, 0.08);
+    }
+
+    .wrap > section:nth-of-type(even) {
+      background: #ffffff;
     }
 
     h2 {
+      margin: 0 0 12px;
       font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
-      font-size: 1.6rem;
-      margin: 0 0 16px;
+      font-size: 1.45rem;
+      letter-spacing: -0.01em;
     }
 
-    .lead {
-      font-size: 1.05rem;
+    h3 {
+      margin: 0 0 8px;
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      font-size: 1.06rem;
+      letter-spacing: -0.01em;
+    }
+
+    p { margin: 0; }
+
+    .lede {
+      font-size: 1.03rem;
       color: var(--muted);
-      max-width: 860px;
+      max-width: 940px;
     }
 
     .grid {
       display: grid;
-      gap: 20px;
+      gap: 16px;
     }
 
-    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 
     .card {
-      background: var(--card);
-      border-radius: 18px;
-      padding: 20px;
       border: 1px solid var(--line);
-      box-shadow: 0 12px 30px rgba(17, 18, 22, 0.06);
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(16, 18, 30, 0.05);
     }
 
-    .card h3 {
-      margin: 0 0 10px;
-      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
-      font-size: 1.1rem;
+    .card p { color: var(--muted); }
+
+    .list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
     }
 
-    .bullets {
-      display: grid;
-      gap: 14px;
+    .list li + li { margin-top: 8px; }
+
+    .formula {
+      margin-top: 10px;
+      font-family: "Menlo", "Consolas", "SFMono-Regular", monospace;
+      font-size: 0.9rem;
+      background: #f8f7f3;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      overflow-x: auto;
+      color: #222937;
     }
 
-    .bullet {
-      display: grid;
-      grid-template-columns: 36px 1fr;
-      gap: 12px;
+    .link-frame {
+      display: inline-flex;
+      padding: 6px;
+      border: 2px solid #1e4f9a;
+      border-radius: 999px;
+      background: rgba(217, 236, 255, 0.5);
       align-items: center;
-    }
-
-    .bullet img {
-      width: 36px;
-      height: 36px;
-      object-fit: contain;
     }
 
     .fig-grid {
       display: grid;
-      gap: 20px;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
     }
 
     figure {
       margin: 0;
-      background: #fdfcfb;
-      border-radius: 16px;
-      padding: 16px;
+      background: #fcfbf8;
       border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
     }
 
     figure img {
+      display: block;
       width: 100%;
       height: auto;
-      display: block;
-      border-radius: 12px;
+      border-radius: 10px;
     }
 
     figcaption {
-      margin-top: 10px;
+      margin-top: 8px;
+      color: var(--muted);
       font-size: 0.9rem;
+    }
+
+    .small {
+      font-size: 0.92rem;
       color: var(--muted);
     }
 
-    .icon-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .icon-row img {
-      width: 56px;
-      height: 56px;
-      object-fit: contain;
-      border-radius: 14px;
-      background: #fff;
-      border: 1px solid var(--line);
-      padding: 8px;
-    }
-
-    footer {
-      margin-top: 64px;
-      color: var(--muted);
-      font-size: 0.9rem;
+    .footer {
+      margin-top: 48px;
       border-top: 1px solid var(--line);
-      padding-top: 18px;
+      padding-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
     }
 
     @media (max-width: 700px) {
-      .hero { padding: 32px 24px; }
-      .hero-mark img { width: 90px; height: 90px; }
-      .meta { flex-direction: column; }
+      .hero { padding: 28px 20px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .logo { width: 88px; height: 88px; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <header class="hero">
-      <div class="hero-top">
-        <div class="hero-mark">
-          <img src="assets/figures/fig-000.png" alt="Jackpot visual mark" />
-          <img src="assets/figures/fig-001.png" alt="Jackpot visual mark, monochrome" />
-        </div>
+  <div class="wrap">
+    <nav>
+      <a class="chip" href="#introduction">Introduction</a>
+      <a class="chip" href="#problem">Problem</a>
+      <a class="chip" href="#method">Method</a>
+      <a class="chip" href="#theory">Theory</a>
+      <a class="chip" href="#experiments">Experiments</a>
+      <a class="chip" href="#limitations">Limitations</a>
+    </nav>
+
+    <header class="hero" id="top">
+      <div class="hero-grid">
         <div>
-          <h1 class="title">Jackpot</h1>
-          <p class="subtitle">
-            Optimal Budgeted Rejection Sampling (OBRS) for extreme actor-policy mismatch in RL for LLMs.
-            A practical path to decouple rollout generation from policy optimization without destabilizing learning.
+          <h1 class="title-row">
+            <svg class="title-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+              <rect class="card-back" x="6.8" y="6.8" width="27" height="34" rx="4.2" transform="rotate(-12 20.3 23.8)" />
+              <rect class="card-front" x="13.5" y="8.8" width="27" height="34" rx="4.2" transform="rotate(8 27 25.8)" />
+              <text class="ace-index" x="19.8" y="16.7" font-size="5.2" font-weight="700" font-family="Georgia, 'Times New Roman', serif">A</text>
+              <path class="ace-mark" d="M27.8 20.1c1.4-2.2 4-2.3 4.9-.6.6 1.2.2 2.5-1.4 3.8-1.3 1-2.7 2.2-3.5 3.4-.8-1.2-2.1-2.4-3.4-3.4-1.7-1.3-2.1-2.6-1.4-3.8.9-1.7 3.4-1.6 4.8.6z" />
+              <path class="ace-mark" d="M27.8 26.7l1.8 4.5h-3.6z" />
+            </svg>
+            <span>Jackpot: Optimal Budgeted Rejection Sampling for Extreme Actor-Policy Mismatch Reinforcement Learning</span>
+          </h1>
+          <p class="authors">
+            <a class="author-btn" href="#">Zhuoming Chen*</a>
+            <a class="author-btn" href="#">Hongyi Liu*</a>
+            <a class="author-btn" href="#">Yang Zhou*</a>
+            <a class="author-btn" href="#">Haizhong Zheng</a>
+            <a class="author-btn" href="#">Beidi Chen</a>
           </p>
-          <div class="meta">
-            <span class="pill">Zhuoming Chen* · Hongyi Liu* · Yang Zhou* · Haizhong Zheng · Beidi Chen</span>
-            <span class="pill">Carnegie Mellon University</span>
+          <p class="inst">Carnegie Mellon University, * for equal contribution</p> 
+          <div class="hero-actions">
+            <!-- <a class="btn" href="#">arxiv link</a>  --> 
+            <!-- <a class="btn" href="#">code</a>  --> 
+            <span class="link-frame">
+              <a href="https://arxiv.org/abs/2502.05252" target="_blank"
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                  <i class="ai ai-arxiv"></i>
+                </span>
+                <span>arXiv</span>
+              </a>
+            </span>
+            <span class="link-frame">
+              <a href="https://github.com/Infini-AI-Lab/gsm_infinite" target="_blank"
+                 class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                  <i class="fab fa-github"></i>
+                </span>
+                <span>Code</span>
+              </a>
+            </span>
           </div>
         </div>
       </div>
     </header>
 
-    <section>
-      <h2>Abstract (Condensed)</h2>
-      <p class="lead">
-        Rollouts dominate the cost of RL for LLMs, yet using a cheaper rollout model creates severe
-        distribution mismatch with the target policy. Jackpot introduces OBRS to move rollout
-        distributions toward the target under a controllable acceptance budget. The framework
-        combines OBRS, a unified training objective that updates both policy and rollout models,
-        and a system implementation that uses top-k probability estimation and batch-level bias
-        correction. Empirically, Jackpot stabilizes training compared to importance-sampling
-        baselines and reaches on-policy performance when training Qwen3-8B-Base for up to
-        300 update steps.
+    <section id="introduction">
+      <h2>Introduction</h2>
+      <p class="lede" style="max-width: none; width: 100%;">
+        Reinforcement learning for LLMs is expensive, with rollout generation often dominating runtime by 80% <a href="https://arxiv.org/abs/2511.14617" target="_blank" rel="noopener noreferrer" style="color: #7a3db8;">[Seer]</a>. 
+        <!-- Jackpot introduces Optimal Budgeted Rejection Sampling (OBRS) to reduce mismatch between a cheap rollout model and an evolving policy model under a controllable acceptance budget.  --> 
+        On top of the prior works exploring ways to lower the rollout costs, Jackpot pushes the scenario of actor-policy mismatch to the extreme and ask the following question: 
+        <br>
+        <span style="font-weight: bold; color: #123b7a; background: #d9ecff; padding: 6px 10px; border-radius: 6px; border: 2px solid #1e4f9a; display: block; text-align: center; width: 100%; box-sizing: border-box;">Is it possible to perform rollouts using a completely different model from the one we utimately want to train?</span> 
+        <br> 
+        The potential efficiency benefit of completely decoupling the rollout and policy is obvious, and the smaller variant in the same model family can usually achieve non-zero rewards on challenging datasets. 
+        However, different from the past actor-policy mismatch scenarios (Large staleness, KV quantization, etc.), the KL divergence between the actor and policy between two different models is <span style="font-weight: bold; color: #7a3db8;"></span>orders of magnitude larger</span>. 
+        To attain our goal, we propose Jackpot that utilizes <span style="font-weight: bold; color: #7a3db8;">Optimal Budgeted Rejection Sampling (OBRS)</span> to actively modify the rollout distribution and rollout to reduce the distribution mismatch. 
+        We show that Jackpot can reduce KL divergence with <span style="font-weight: bold; color: #7a3db8;">provable guarantees</span> and empirically achieve <span style="font-weight: bold; color: #7a3db8;">significant stability improvements</span> on challenging Qwen3-1.7B-Base rollout and Qwen3-8B-Base update settings (up to 300 steps of stable training on <a href="https://arxiv.org/abs/2511.14617" target="_blank" rel="noopener noreferrer" style="color: #7a3db8;">DeepScaleR</a> dataaset). 
+      </p> 
+      <div style="height: 16px;"></div>
+      <figure>
+        <div style="display: inline-block; border-radius: 10px; border: 1px dashed #b9c2d3; background: linear-gradient(135deg, #f7f9fc 0%, #eef2f8 100%); padding: 8px;">
+          <img src="assets/figures/generalbigpicturer.png" alt="General Description of actor-policy mismatch and Jackpot Performance" style="display: block; width: auto; height: auto; max-width: 100%; border-radius: 8px;" />
+        </div>
+      </figure>
+      <figcaption>Left: General Description of the actor-policy mismatch scenario. Jackpot is generally applicable. Right: Illustration of Jackpot performance on the two model joint training scenario, achieving significantly more stable training than TIS. </figcaption> 
+    </section> 
+
+    <section id="problem">
+      <h2>Optimal Budgeted Rejection Sampling (OBRS)</h2>
+      <div class="grid grid-2">
+        <div class="lede" style="max-width: none; width: 100%;">
+          <script>
+            window.MathJax = {
+              tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+              },
+              chtml: { scale: 1.0 }
+            };
+          </script>
+          <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+          <section class="paper">
+            <p class="lead">
+              <strong>Prior Distribution Mismatch Correction in RL</strong>
+              can be generally formulated as, an Actor (i.e., the rollout model) and a policy (i.e., the trained model) mismatch is a common problem that has
+              long been studied, e.g., <span class="cite">(Espeholt et al., 2018)</span>. To alleviate the actor–policy
+              distribution gap, prior methods leverage importance sampling to approximate the true PPO objective.
+            </p>
+          
+            <div class="eq-wrap">
+              \[
+              \mathcal{L}^{\text{PPO}}(\theta)
+              = \mathbb{E}_{x \sim p_{\text{inf}}}\Big[
+                \text{SG}\!\Big(
+                  \underbrace{\boldsymbol{F}\!\Big(\tfrac{p_{\text{ref}}(x)}{p_{\text{inf}}(x)}\Big)}_{\text{adjustment}}
+                \Big)
+                \min\Big(
+                  r_\theta(x)\,\hat{A}(x),
+                  \operatorname{clip}\!\big(r_\theta(x), 1-\epsilon, 1+\epsilon\big)\,\hat{A}(x)
+                \Big)
+              \Big].
+              \]
+              <div class="eq-highlight" aria-hidden="true"></div>
+            </div>
+          
+            <p>
+              \( \text{SG} \) means stop gradients. The choice of adjustment function \( \boldsymbol{F} \) is one of the
+              core focuses of prior work. Areal uses \( \boldsymbol{F}(x)=x \); Flash-RL and Llama-RL use
+              \( \boldsymbol{F}(x)=\min(x,C) \) (i.e., truncated importance sampling, TIS), where \( C \) is a
+              hyper-parameter; IceProp uses a bi-directional truncation:
+            </p>
+          
+            <div class="eq-wrap">
+              \[
+              \boldsymbol{F}(x)=
+              \begin{cases}
+                x, & \text{if } x \in [\alpha,\beta],\\[6pt]
+                0, & \text{otherwise}.
+              \end{cases}
+              \]
+            </div>
+          
+            <p>
+              From a systems perspective, FP32 LM heads and deterministic LLM inference are implemented to mitigate
+              numerical issues in serving systems during rollout.
+            </p>
+          </section>
+          
+          <style>
+            .paper{
+              max-width: none;
+              width: 100%;
+              margin: 0;
+              font-size: 16px;
+              line-height: 1.65;
+            }
+            .paper .lead{ margin: 0 0 10px; }
+            .cite{ color:#666; }
+          
+            /* Key: prevent “cut off” */
+            .eq-wrap{
+              position: relative;
+              margin: 8px 0 12px;
+              padding: 0;
+              background: transparent;
+              border-left: none;
+              overflow-x: auto;              /* scroll instead of cut */
+              -webkit-overflow-scrolling: touch;
+            }
+          
+            /* Optional: mimic your lightpink highlight, but safely (CSS, not LaTeX colorbox) */
+            .eq-highlight{
+              /* This is a subtle highlight overlay; tune or delete if you don't want it */
+              position: absolute;
+              left: 22px;
+              top: 18px;
+              width: 280px;
+              height: 32px;
+              background: rgba(255, 182, 193, 0.35); /* lightpink */
+              border-radius: 6px;
+              pointer-events: none;
+              mix-blend-mode: multiply;
+              /* If you want it EXACTLY behind F(...), you'll need to manually tweak size/position */
+              display: none; /* turn on if you want: set to block */
+            }
+          </style> 
+          <strong>However, Importance Sampling based methods are vulnerable to extreme actor-policy mismatch.</strong>
+          Once the actor drifts too far, many tokens that the actor samples with high probability have very low probability under the policy, since \( p_{\text{inf}} > p_{\text{target}} \). 
+          These actor trajectories are effectively treated as low-likelihood samples by the policy, causing TIS to train on tokens the policy would never select at inference and creating a widening train-inference mismatch. 
+          <span style="font-weight: bold; color: #7a3db8;">It motivates us to look at distribution alignment methods that directly modify \( p_{\text{inf}} \).</span> 
+
+          <section class="paper">
+            <p class="lead">
+              <strong>Rejection Sampling (RS).</strong> 
+              <br> 
+              Rejection Sampling (RS) allows us to directly use the policy distribution \( p_{\text{target}} \) to affect the rollout distribution \( p_{\text{inf}} \). 
+              <details class="defn">
+                <summary>
+                  <span class="badge" style="color: #7a3db8;">Definition</span>
+                  <span class="title" style="color: #7a3db8;">Rejection Sampling (RS)</span>
+                  <span class="hint">(click to fold/unfold)</span>
+                </summary>
+              
+                <div class="content">
+                  <p>
+                    RS stochastically rejects tokens in trajectories sampled with \(p_{\text{inf}}\) based on the difference
+                    between two distributions. In standard rejection sampling, a token \(i\) proposed from \(\boldsymbol{q}\)
+                    is accepted with probability
+                    \( \frac{p_i}{\lambda q_i} \),
+                    where the constant \(\lambda\) must satisfy
+                    \( \lambda \ge \max_i \frac{p_i}{q_i} \).
+                  </p>
+              
+                  <p>
+                    Therefore, we have
+                    \( \tilde{q}_i \propto q_i \cdot \frac{p_i}{\lambda q_i} \).
+                    Then \( \tilde{q}_i = p_i \) after normalization. Therefore, rejection sampling transforms samples from
+                    \(\boldsymbol{q}\) into exact samples from the target distribution \(\boldsymbol{p}\).
+                  </p>
+              
+                  <div class="math-block">
+                    \[
+                      \text{Accept}(i) = \frac{p_i}{\lambda q_i},
+                      \qquad
+                      \lambda \ge \max_i \frac{p_i}{q_i}
+                    \]
+                    \[
+                      \tilde{q}_i \propto q_i \cdot \frac{p_i}{\lambda q_i}
+                      \;\Rightarrow\;
+                      \tilde{q}_i \propto p_i
+                      \;\Rightarrow\;
+                      \tilde{q}_i = p_i \;(\text{normalized})
+                    \]
+                  </div>
+                </div>
+              </details> 
+            </p> 
+          </section>
+          The problem of RS is that LLM output distribution is high dimensional, usually exceeding 30k tokens. Realistically, using naive RS will requires \( \lambda \) to be of high numerical values and effectively rejecting all tokens from rollouts. 
+          <br> 
+          Instead, we look at <span style="font-weight: bold; color: #7a3db8;">Optimal Budgeted Rejection Sampling</span> <a href="https://arxiv.org/abs/2311.00460" target="_blank" rel="noopener noreferrer" style="color: #7a3db8;">[OBRS]</a>. We stop aiming at forcing the rollout distribution post modification identical to the target distribution, and instead aim at given a budget of how many tokens we are willing to reject, how to most effectively select tokens to reject and minimize the KL divergence between the rollout distribution after modifcations and the target distribution. 
+          <section class="paper">
+            <p class="lead"> 
+          <details class="defn" open>
+            <summary>
+              <span class="badge" style="color: #7a3db8;">Definition</span>
+              <span class="title" style="color: #7a3db8;">Optimal Budget Rejection Sampling (OBRS)</span>
+              <span class="hint">(click to fold/unfold)</span>
+            </summary>
+          
+            <div class="content">
+          
+              <p>
+                Instead of using the dominating constant
+                \( \lambda = \max_i \tfrac{p_i}{q_i} \),
+                OBRS selects a smaller user-specified parameter
+                \( \lambda > 0 \)
+                that reflects the desired rejection budget.
+                For a proposed token \( i \sim \boldsymbol{q} \),
+                OBRS accepts it with probability
+              </p>
+          
+              <div class="math-block">
+                \[
+                  a_i = \min\!\left(1,\; \frac{p_i}{\lambda q_i}\right).
+                \]
+              </div>
+          
+              <p>
+                The resulting post-rejection distribution is therefore
+              </p>
+          
+              <div class="math-block">
+                \[
+                  \tilde{q}_i \propto q_i \cdot a_i .
+                \]
+              </div> 
+          
+            </div>
+          </details> 
+          </p> 
+          </section> 
+          Next, we will look at the numerical simulation of OBRS and show theoretical guarantees of OBRS. 
+        </div>
+      </div>
+    </section> 
+
+    <section id="method">
+      <h2>KL-Divergence Reduction via Numerical Simulation and Theoretical Guarantees</h2> 
+      <figure>
+        <div style="display: inline-block; border-radius: 10px; border: 1px dashed #b9c2d3; background: linear-gradient(135deg, #f7f9fc 0%, #eef2f8 100%); padding: 8px;">
+          <img src="assets/figures/numericalsim.png" alt="Numerical Simulation of OBRS" style="display: block; width: auto; height: auto; max-width: 100%; border-radius: 8px;" />
+        </div>
+      </figure> 
+      We conducted numerical experiments in (a) and (b), where we simulate the LLMs' output distribution with randomly generated Dirichlet distribution with controllable noise to attain different levels of KL divergence. 
+      (a) plots the simulated OBRS acceptance rate across different pairs of actor-policy distributions. 
+      While overal trend sees acceptance rate slowly decreasing as the distributions move further apart, the acceptance rate remains high (\(>90\%\)) throughout the spectrum. 
+      For reference, we also marks the actor-policy gap of different common seen off-policy settings. 
+      In (b), we show that <span style="font-weight: bold; color: #7a3db8;">OBRS significantly shrinks the KL divergence</span> between the target distribution versus the applied distribution in our simulations, sometimes by an order of magnitude. 
+      In (c), our proposed method, Jackpot (yellow) <span style="font-weight: bold; color: #7a3db8;">maintains small KL divergence</span> between actor and policy model probability distribution, while without alginment and TIS both seen KL divergence explosively rise up as the training continues. 
+      <br>
+      In addition to the numerical simulation, <span style="font-weight: bold; color: #7a3db8;">OBRS provides the following strong theoretical guarantees</span>. 
+      <section class="paper">
+        <p class="lead">
+      <details class="thm" open>
+        <summary>
+          <span class="badge" style="color: #7a3db8;">Theorem</span>
+          <span class="title" style="color: #7a3db8;">OBRS Improves Distribution Alignment (KL Divergence \( \downarrow \))</span> 
+          <span class="hint">(click to fold/unfold)</span>
+        </summary>
+      
+        <div class="content">
+          <p>
+            Let \( \boldsymbol{p} \) be the target distribution and \( \boldsymbol{q} \) be the proposal distribution.
+            For any \( \lambda > 0 \), define the OBRS acceptance rule
+          </p>
+      
+          <div class="math-block">
+            \[
+              a_i = \min\!\left(1, \frac{p_i}{\lambda q_i}\right),
+              \qquad
+              \tilde{q}_i \propto q_i a_i .
+            \]
+          </div>
+      
+          <p>
+            Then the post-rejection distribution \( \tilde{\boldsymbol{q}} \) is strictly closer to \( \boldsymbol{p} \)
+            than the original proposal \( \boldsymbol{q} \) in the sense that
+          </p>
+      
+          <div class="math-block">
+            \[
+              D_{\mathrm{KL}}(\boldsymbol{p} \,\|\, \tilde{\boldsymbol{q}})
+              \;\le\;
+              D_{\mathrm{KL}}(\boldsymbol{p} \,\|\, \boldsymbol{q}),
+            \]
+            \[
+              \text{whenever } \lambda < \max_i \frac{p_i}{q_i}.
+            \]
+          </div>
+      
+        </div>
+      </details> 
+      </p> 
+      </section> 
+      In other words, OBRS always moves the proposal distribution toward the target distribution under any nontrivial rejection budget. 
+      <section class="paper">
+        <p class="lead">
+          <details class="thm" open>
+            <summary>
+              <span class="badge" style="color: #7a3db8;">Theorem</span>
+              <span class="title" style="color: #7a3db8;">Optimality of OBRS under a Fixed Acceptance Budget</span> 
+              <span class="hint">(click to fold/unfold)</span>
+            </summary>
+          
+            <div class="content">
+              <p>
+                For any desired average acceptance rate \( \bar{a} \in (0,1] \), there exists a unique scaling factor
+                \( \lambda > 0 \) such that the OBRS acceptance rule
+              </p>
+          
+              <div class="math-block">
+                \[
+                  a_i = \min\!\left(1, \frac{p_i}{\lambda q_i}\right)
+                \]
+              </div>
+          
+              <p>
+                achieves the exact acceptance budget:
+              </p>
+          
+              <div class="math-block">
+                \[
+                  \sum_i q_i a_i = \bar{a}.
+                \]
+              </div>
+          
+              <p>
+                Moreover, among all acceptance rules \( a_i \in [0,1] \) that satisfy this constraint, the OBRS rule is the
+                unique minimizer of the divergence to the target distribution:
+              </p>
+          
+              <div class="math-block">
+                \[
+                  \tilde{\boldsymbol{q}}
+                  = \arg\min_{\hat{\boldsymbol{q}}}
+                  D_{\mathrm{KL}}(\boldsymbol{p} \,\|\, \hat{\boldsymbol{q}}),
+                  \quad \text{s.t.}\quad
+                  \hat{q}_i \propto q_i a_i,\;
+                  \sum_i q_i a_i = \bar{a}.
+                \]
+              </div>
+
+            </div>
+          </details> 
+        </p>
+      </section> 
+      Thus, OBRS is provably optimal for aligning \( \boldsymbol{q} \) toward \( \boldsymbol{p} \) under any
+      specified rejection budget. Detailed proofs are provided in the paper. 
+    </section>
+
+    <section id="theory">
+      <h2>Jackpot</h2>
+      <figure>
+        <div style="display: inline-block; border-radius: 10px; border: 1px dashed #b9c2d3; background: linear-gradient(135deg, #f7f9fc 0%, #eef2f8 100%); padding: 8px;">
+          <img src="assets/figures/methodjackpot.png" alt="Jackpot" style="display: block; width: auto; height: auto; max-width: 100%; border-radius: 8px;" />
+        </div>
+      </figure> 
+      <p>
+      <b>Jackpot</b> jointly optimizes three components:
+      </p>
+        
+      <ul>
+        <li><b>(i)</b> OBRS-adjusted RL loss for the policy model \( \theta \)</li>
+        <li><b>(ii)</b> Standard PPO loss for the rollout model \( \omega \)</li>
+        <li><b>(iii)</b> On-policy distillation to keep rollout aligned with policy</li>
+        </ul>
+        
+        <p>Below we describe the policy objective.</p>
+        
+        
+        <!-- ================= POLICY OBJECTIVE ================= -->
+        
+        <details class="theory" open>
+        <summary><b>OBRS-Adjusted RL Loss for the Policy Model</b></summary>
+        
+        <div class="content">
+        
+        <p>
+        Tokens are sampled from the rollout distribution \(p_{\text{inf}}\).
+        Each token \(x\) is accepted via OBRS:
+        </p>
+        
+        <div class="math-block">
+        \[
+        a(x)=
+        \min\!\left(1,\frac{p_{\text{target}}(x)}{\lambda\,p_{\text{inf}}(x)}\right),
+        \qquad
+        \mathrm{Mask}(x)\sim\mathrm{Bernoulli}(a(x)).
+        \]
+        </div>
+        
+        <p>
+        Accepted tokens define the adjusted sampling distribution
+        </p>
+        
+        <div class="math-block">
+        \[
+        p'_{\text{inf}}(x)=
+        \frac{p_{\text{inf}}(x)a(x)}
+        {\sum_{x'} p_{\text{inf}}(x')a(x')}.
+        \]
+        </div>
+        
+        <p>
+        The standard PPO objective
+        </p>
+        
+        <div class="math-block">
+        \[
+        \mathcal{L}^{\text{PPO}}(\theta)=
+        \mathbb{E}_{x\sim p_{\text{inf}}}
+        \Big[
+        \mathrm{SG}\!\left(
+        \boldsymbol{F}\!\left(\tfrac{p_{\text{ref}}(x)}{p_{\text{inf}}(x)}\right)
+        \right)
+        \min\big(
+        r_\theta(x)\hat{A}(x),
+        \operatorname{clip}(r_\theta(x),1-\epsilon,1+\epsilon)\hat{A}(x)
+        \big)
+        \Big]
+        \]
+        </div>
+        
+        <p>
+        becomes the OBRS-aware objective
+        </p>
+        
+        <div class="math-block highlight">
+        \[
+        \mathcal{L}^{\text{PPO-OBRS}}(\theta)=
+        \mathbb{E}_{x\sim p_{\text{inf}}}
+        \Big[
+        \mathrm{Mask}(x)\,
+        \mathrm{SG}\!\left(
+        \boldsymbol{F}\!\left(
+        \frac{p_{\text{target}}(x)}{p'_{\text{inf}}(x)}
+        \right)
+        \frac{p_{\text{ref}}(x)}{p_{\text{target}}(x)}
+        \right)
+        \min\big(
+        r_\theta(x)\hat{A}(x),
+        \operatorname{clip}(r_\theta(x),1-\epsilon,1+\epsilon)\hat{A}(x)
+        \big)
+        \Big]
+        \]
+        </div>
+        
+        <p>
+        Rejected samples are removed by \( \mathrm{Mask}(x) \), while accepted
+        samples are reweighted through \( p'_{\text{inf}} \).
+        The function \( \boldsymbol{F} \) provides truncated importance correction.
+        The target distribution \(p_{\text{target}}\) may be chosen as either
+        \(p_{\text{ref}}\) or the updated policy \(p_{\theta_{\text{new}}}\)
+        for alignment.
+        </p>
+        
+        </div>
+        </details> 
+    </section> 
+
+    <section id="experiments">
+      <h2>Experimental Highlights</h2>
+      <p class="lede">
+        The paper evaluates extreme decoupled settings (e.g., Qwen3-1.7B rollout for larger policy models) and reports improved stability and competitive performance against on-policy references across multiple math reasoning benchmarks.
       </p>
     </section>
 
-    <section>
-      <h2>Why This Matters</h2>
-      <div class="grid grid-2">
-        <div class="card">
-          <h3>Problem</h3>
-          <div class="bullets">
-            <div class="bullet">
-              <img src="assets/figures/fig-008.png" alt="X icon" />
-              <div>On-policy RL is expensive because rollouts dominate total cost.</div>
-            </div>
-            <div class="bullet">
-              <img src="assets/figures/fig-008.png" alt="X icon" />
-              <div>Off-policy rollouts introduce large mismatch and unstable training.</div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>Jackpot Solution</h3>
-          <div class="bullets">
-            <div class="bullet">
-              <img src="assets/figures/fig-006.png" alt="Check icon" />
-              <div>Use OBRS to align rollout and target distributions within a budget.</div>
-            </div>
-            <div class="bullet">
-              <img src="assets/figures/fig-006.png" alt="Check icon" />
-              <div>Unified objective keeps policy + rollout models co-evolving.</div>
-            </div>
-            <div class="bullet">
-              <img src="assets/figures/fig-006.png" alt="Check icon" />
-              <div>System optimizations make alignment practical at scale.</div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <section id="limitations">
+      <h2>Limitations and Future Direction</h2>
+      <p class="lede">
+        The paper notes that Jackpot does not completely eliminate instability in all long-horizon or large-scale settings. Reported evidence suggests divergence can still occur under extended optimization, and validation on larger model scales remains open. A proposed direction is closed-loop control that adapts distillation/RL balance using real-time KL measurements.
+      </p>
     </section>
 
-    <section>
-      <h2>Method Snapshot</h2>
-      <div class="grid grid-3">
-        <div class="card">
-          <h3>Optimal Budgeted Rejection Sampling</h3>
-          <p class="lead">
-            OBRS directly reduces distribution mismatch by sampling from rollout outputs while
-            enforcing an acceptance budget, ensuring controlled, monotonic alignment.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Unified Training Objective</h3>
-          <p class="lead">
-            Policy and rollout models are updated together, mitigating drift and keeping the
-            rollout distribution close to the evolving policy.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Efficient Implementation</h3>
-          <p class="lead">
-            Top-k probability estimation plus batch-level bias correction delivers practical
-            throughput without sacrificing alignment quality.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Figures From the Draft</h2>
-      <div class="fig-grid">
-        <figure>
-          <img src="assets/figures/fig-002.png" alt="AIME 2025 avg@16 Qwen3-1.7B-Base Rollout Qwen3-8B-Base Update" loading="lazy" decoding="async" />
-          <figcaption>AIME 2025 avg@16: Qwen3-1.7B rollout, Qwen3-8B update.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-003.png" alt="Acceptance rate vs. KL divergence" loading="lazy" decoding="async" />
-          <figcaption>Acceptance rate vs. KL divergence in numerical simulation.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-004.png" alt="Jackpot applied before and after" loading="lazy" decoding="async" />
-          <figcaption>Jackpot applied before and after: KL divergence reduction.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-005.png" alt="Actor-Policy KL divergence" loading="lazy" decoding="async" />
-          <figcaption>Actor-policy KL divergence over training steps.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-012.png" alt="AIMOAMC avg@4 Qwen2.5 rollout vs Qwen2.5-3B evaluation" loading="lazy" decoding="async" />
-          <figcaption>AIMO-AMC avg@4: Qwen2.5-1.5B rollout vs Qwen2.5-3B evaluation.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-013.png" alt="AIME 2025 avg@16 Qwen3-1.7B rollout Qwen3-4B update" loading="lazy" decoding="async" />
-          <figcaption>AIME 2025 avg@16: Qwen3-1.7B rollout, Qwen3-4B update.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-014.png" alt="AIME 2025 avg@16 Qwen3-1.7B rollout Qwen3-8B update" loading="lazy" decoding="async" />
-          <figcaption>AIME 2025 avg@16: Qwen3-1.7B rollout, Qwen3-8B update.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-015.png" alt="AIME 2025 avg@16 Qwen3-4B FP8 KV quantization" loading="lazy" decoding="async" />
-          <figcaption>AIME 2025 avg@16: Qwen3-4B FP8 KV quantization.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-016.png" alt="Training rewards on Qwen3-8B-Base DeepScaleR dataset" loading="lazy" decoding="async" />
-          <figcaption>Training rewards on Qwen3-8B-Base DeepScaleR dataset.</figcaption>
-        </figure>
-        <figure>
-          <img src="assets/figures/fig-017.png" alt="AIMO-AMC avg@4 Qwen3-1.7B rollout + Qwen3-4B update (32-on)" loading="lazy" decoding="async" />
-          <figcaption>AIMO-AMC avg@4: Qwen3-1.7B rollout + Qwen3-4B update (32-on).</figcaption>
-        </figure>
-      </div>
-    </section>
-
-    <section>
-      <h2>Visual Elements</h2>
-      <p class="lead">Icons extracted from the draft figures for quick iteration.</p>
-      <div class="icon-row">
-        <img src="assets/figures/fig-006.png" alt="Check icon" loading="lazy" decoding="async" />
-        <img src="assets/figures/fig-007.png" alt="Circle icon" loading="lazy" decoding="async" />
-        <img src="assets/figures/fig-008.png" alt="X icon" loading="lazy" decoding="async" />
-        <img src="assets/figures/fig-009.png" alt="Circle icon" loading="lazy" decoding="async" />
-        <img src="assets/figures/fig-010.png" alt="Check icon" loading="lazy" decoding="async" />
-        <img src="assets/figures/fig-011.png" alt="Circle icon" loading="lazy" decoding="async" />
-      </div>
-    </section>
-
-    <section>
-      <h2>Takeaways</h2>
-      <div class="grid grid-2">
-        <div class="card">
-          <h3>Practical Decoupling</h3>
-          <p class="lead">
-            OBRS-based alignment makes it feasible to use efficient rollout models while preserving
-            stable learning dynamics.
-          </p>
-        </div>
-        <div class="card">
-          <h3>Comparable Performance</h3>
-          <p class="lead">
-            Jackpot reaches on-policy performance in the reported Qwen3-8B-Base training regime
-            and improves stability versus importance-sampling baselines.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      Draft website version 1.0 — content summarized from the attached PDF draft.
+    <footer class="footer">
+      <p><a href="#top">Back to top</a></p>
     </footer>
   </div>
 </body>
-</html>
+</html> 
