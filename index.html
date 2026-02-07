@@ -250,6 +250,18 @@
     }
 
     p { margin: 0; }
+    pre, code {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    pre code {
+      display: block;
+      background: #f3f5fb;
+      border: 1px solid rgba(43, 29, 17, 0.12);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #1f2430;
+    }
 
     .lede {
       font-size: 1.03rem;
@@ -355,9 +367,9 @@
   <div class="wrap">
     <nav>
       <a class="chip" href="#introduction">Introduction</a>
-      <a class="chip" href="#problem">Problem</a>
-      <a class="chip" href="#method">Method</a>
-      <a class="chip" href="#theory">Theory</a>
+      <a class="chip" href="#problem">OBRS</a>
+      <a class="chip" href="#method">Numerical Simulation</a>
+      <a class="chip" href="#theory">Jackpot</a>
       <a class="chip" href="#experiments">Experiments</a>
       <a class="chip" href="#limitations">Limitations</a>
     </nav>
@@ -858,18 +870,80 @@
     </section> 
 
     <section id="experiments">
-      <h2>Experimental Highlights</h2>
-      <p class="lede">
-        The paper evaluates extreme decoupled settings (e.g., Qwen3-1.7B rollout for larger policy models) and reports improved stability and competitive performance against on-policy references across multiple math reasoning benchmarks.
-      </p>
+      <h2>Experimental</h2>
+      <figure>
+        <div style="display: inline-block; border-radius: 10px; border: 1px dashed #b9c2d3; background: linear-gradient(135deg, #f7f9fc 0%, #eef2f8 100%); padding: 8px;">
+          <img src="assets/figures/experiments.png" alt="Experiments" style="display: block; width: auto; height: auto; max-width: 100%; border-radius: 8px;" />
+        </div>
+      </figure> 
+      <h3>Jackpot Enables Stable Training of One model Rollout and Another Completely Different Model Update</h3> 
+      <p>
+        Jackpot enables probability distribution alignment beyond existing methods.
+        In the extreme two-model joint training setting, Jackpot allows the smaller,
+        weaker model to roll out trajectories that are then used by the larger,
+        stronger model for training.
+        We show that prior TIS methods — even when augmented with KL regularization —
+        consistently suffer from unstable training across three settings:
+        Qwen2.5 (1.5B vs. 3B), Qwen3 (1.7B vs. 4B), and Qwen3 (1.7B vs. 8B) base models.
+        In contrast, Jackpot achieves performance comparable to the large model’s
+        on-policy performance. 
+      </p> 
+      <h3>Jackpot Can Enable Removal of Clipping in other actor-policy mismatch settings</h3> 
+      <figure> 
+        <div style="display: inline-block; border-radius: 10px; border: 1px dashed #b9c2d3; background: linear-gradient(135deg, #f7f9fc 0%, #eef2f8 100%); padding: 8px;">
+          <img src="assets/figures/clippingexperiments.png" alt="Clipping Experiments" style="display: block; width: auto; height: auto; max-width: 100%; border-radius: 8px;" /> 
+        </div>
+      </figure> 
+      <p> 
+        (a) Jackpot enables removal of clipping in stale RL training.
+        (b) Jackpot shows neither improvement nor degradation when actor–policy
+        distributions are relatively close and can be sufficiently corrected by TIS.
+        (c) When KL regularization is removed, Jackpot consistently sustains training
+        longer than TIS counterparts.
+      </p> 
+      <span style="font-weight: bold; color: #7a3db8;">We present more details about the experiment setup, ablations, and results in the paper.</span> 
     </section>
 
     <section id="limitations">
-      <h2>Limitations and Future Direction</h2>
+      <h2>Limitations</h2>
       <p class="lede">
-        The paper notes that Jackpot does not completely eliminate instability in all long-horizon or large-scale settings. Reported evidence suggests divergence can still occur under extended optimization, and validation on larger model scales remains open. A proposed direction is closed-loop control that adapts distillation/RL balance using real-time KL measurements.
-      </p>
-    </section>
+        Despite Jackpot's effectiveness, there are still important limitations and gaps from existing methods. 
+        <br> 
+        1. Moreover, although Jackpot reduces
+        the mismatch between the rollout model and the policy model, using a fully
+        separate, smaller actor model to train a large and expensive policy does
+        not completely eliminate the distribution gap or the resulting training
+        instability. In our experiments, training may still diverge after extended
+        optimization (e.g., beyond 300 update steps). 
+        <br> 
+        2. As shown in Paper Section 6, when the distribution shift is already small or
+        adequately controlled by existing techniques (e.g., TIS, PPO clipping, KL regularization, etc.), Jackpot yields only minor
+        improvements over standard baselines. 
+        <span style="font-weight: bold; color: #7a3db8;">We leave these as future work.</span> 
+      </p> 
+    </section> 
+
+    <section id="references">
+      <h2>References</h2> 
+      If you find Jackpot useful, please cite: 
+      <div class="container is-max-desktop content">
+        <h2 class="title">BibTeX</h2>
+        <pre><code>@misc{jackpot2025github,
+title        = {Jackpot: Optimal Budgeted Rejection Sampling for Extreme Actor-Policy Mismatch RL},
+author       = {Liu, Hongyi and Chen, Zhuoming and Zhou, Yang and Zheng, Haizhong and Chen, Beidi},
+howpublished = {\url{https://github.com/Infini-AI-Lab/jackpot.git}},
+note         = {Official GitHub repository},
+year         = {2025}
+}</code></pre>
+      </div>
+    </div>
+      <img
+        src="assets/figures/GSMQQ.gif" 
+        width="200"
+        height="200" 
+        style="display: block;margin: auto"/>
+    </div> 
+    </section> 
 
     <footer class="footer">
       <p><a href="#top">Back to top</a></p>
